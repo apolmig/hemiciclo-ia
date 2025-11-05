@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Votaciones - Parlamento Europeo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #F9FAFB;
+    }
+    #root {
+      min-height: 100vh;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React and Babel from CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- SheetJS for Excel export -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+  <!-- Lucide Icons as inline SVG components -->
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // Inline Lucide icon components
+    const Users = ({ size = 24, color = 'currentColor' }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    );
+
+    const Globe2 = ({ size = 24, color = 'currentColor' }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+        <path d="M2 12h20"/>
+      </svg>
+    );
+
+    const RefreshCw = ({ size = 24, color = 'currentColor' }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+        <path d="M21 3v5h-5"/>
+        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+        <path d="M8 16H3v5"/>
+      </svg>
+    );
+
+    const Loader2 = ({ size = 24, color = 'currentColor' }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{animation: 'spin 1s linear infinite'}}>
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+      </svg>
+    );
+
+    const AlertCircle = ({ size = 24, color = 'currentColor' }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+    );
+
+    const CheckCircle2 = ({ size = 24, color = 'currentColor' }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="m9 12 2 2 4-4"/>
+      </svg>
+    );
+
+    const Flag = ({ size = 24, color = 'currentColor' }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+        <line x1="4" y1="22" x2="4" y2="15"/>
+      </svg>
+    );
+
+    const ChevronDown = ({ size = 24, color = 'currentColor' }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    );
+
+    const ChevronRight = ({ size = 24, color = 'currentColor' }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    );
+
+    const User = ({ size = 24, color = 'currentColor' }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+    );
+
+    const Download = ({ size = 24, color = 'currentColor' }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    );
+
+    const POLITICAL_GROUPS = [
+      {
+        ref: '7018',
+        slug: 'epp',
+        shortName: 'EPP',
+        longName: "Group of the European People's Party (Christian Democrats)",
+        color: '#0054A6'
+      },
+      {
+        ref: '7038',
+        slug: 'sd',
+        shortName: 'S&D',
+        longName: 'Group of the Progressive Alliance of Socialists and Democrats',
+        color: '#C1002A'
+      },
+      {
+        ref: '7035',
+        slug: 'renew',
+        shortName: 'Renew',
+        longName: 'Renew Europe Group',
+        color: '#F6C700'
+      },
+      {
+        ref: '7037',
+        slug: 'ecr',
+        shortName: 'ECR',
+        longName: 'European Conservatives and Reformists',
+        color: '#004A9F'
+      },
+      {
+        ref: '7028',
+        slug: 'greens',
+        shortName: 'Greens/EFA',
+        longName: 'Group of the Greens/European Free Alliance',
+        color: '#1A9C3A'
+      },
+      {
+        ref: '7036',
+        slug: 'left',
+        shortName: 'The Left',
+        longName: 'The Left group in the European Parliament - GUE/NGL',
+        color: '#A0002D'
+      },
+      {
+        ref: '7150',
+        slug: 'pfe',
+        shortName: 'Patriots',
+        longName: 'Patriots for Europe Group',
+        color: '#1F2A73'
+      },
+      {
+        ref: '7151',
+        slug: 'esn',
+        shortName: 'ESN',
+        longName: 'Europe of Sovereign Nations Group',
+        color: '#6B2C91'
+      },
+      {
+        ref: '6561',
+        slug: 'ni',
+        shortName: 'NI',
+        longName: 'Non-attached Members',
+        color: '#7A7A7A'
+      }
+    ];
+
+    const VOTE_CHOICES = [
+      { key: 'yes', label: 'Si', color: '#16A34A' },
+      { key: 'no', label: 'No', color: '#DC2626' },
+      { key: 'abstain', label: 'Abstencion', color: '#D97706' },
+      { key: 'undecided', label: 'Libre', color: '#4B5563' }
+    ];
+
+    const COUNTRY_NAME_TO_CODE = {
+      Belgium: 'BE',
+      Bulgaria: 'BG',
+      Czechia: 'CZ',
+      'Czech Republic': 'CZ',
+      Denmark: 'DK',
+      Germany: 'DE',
+      Estonia: 'EE',
+      Ireland: 'IE',
+      Greece: 'GR',
+      Spain: 'ES',
+      France: 'FR',
+      Croatia: 'HR',
+      Italy: 'IT',
+      Cyprus: 'CY',
+      Latvia: 'LV',
+      Lithuania: 'LT',
+      Luxembourg: 'LU',
+      Hungary: 'HU',
+      Malta: 'MT',
+      Netherlands: 'NL',
+      Austria: 'AT',
+      Poland: 'PL',
+      Portugal: 'PT',
+      Romania: 'RO',
+      Slovenia: 'SI',
+      Slovakia: 'SK',
+      Finland: 'FI',
+      Sweden: 'SE'
+    };
+
+    const createVoteCounter = () => ({
+      yes: 0,
+      no: 0,
+      abstain: 0,
+      undecided: 0
+    });
+
+    const fetchGroupMembers = async group => {
+      // Fetch from local data directory
+      const url = `data/${group.ref}.xml`;
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(
+          `No se pudo cargar el listado del grupo ${group.shortName} (HTTP ${response.status})`
+        );
+      }
+
+      const xmlText = await response.text();
+      if (typeof window === 'undefined') {
+        return [];
+      }
+
+      const parser = new window.DOMParser();
+      const document = parser.parseFromString(xmlText, 'application/xml');
+      const parserErrors = document.getElementsByTagName('parsererror');
+      if (parserErrors.length) {
+        throw new Error(`Respuesta XML invalida para el grupo ${group.shortName}`);
+      }
+
+      const nodes = Array.from(document.getElementsByTagName('mep'));
+      return nodes
+        .map(node => {
+          const lookup = tag =>
+            node.getElementsByTagName(tag)[0]?.textContent?.trim() ?? '';
+
+          const fullName = lookup('fullName');
+          const countryName = lookup('country');
+          const nationalParty = lookup('nationalPoliticalGroup');
+          const id = lookup('id');
+
+          if (!fullName || !id) {
+            return null;
+          }
+
+          const normalizedCountry = countryName || 'N/D';
+          const countryCode =
+            COUNTRY_NAME_TO_CODE[normalizedCountry] ?? normalizedCountry.slice(0, 2).toUpperCase();
+
+          return {
+            id,
+            fullName,
+            countryName: normalizedCountry,
+            countryCode,
+            nationalParty: nationalParty || 'Independent',
+            groupRef: group.ref,
+            groupSlug: group.slug
+          };
+        })
+        .filter(Boolean);
+    };
+
+    const VoteButton = ({ active, color, label, onClick }) => (
+      <button
+        type="button"
+        onClick={onClick}
+        style={{
+          cursor: 'pointer',
+          borderRadius: '9999px',
+          border: active ? 'none' : '1px solid #CBD5F5',
+          backgroundColor: active ? color : 'transparent',
+          color: active ? '#FFFFFF' : '#1F2937',
+          padding: '0.35rem 0.9rem',
+          fontWeight: 600,
+          fontSize: '0.9rem',
+          marginRight: '0.4rem',
+          transition: 'all 0.15s ease-in-out'
+        }}
+      >
+        {label}
+      </button>
+    );
+
+    const ControlRow = ({
+      title,
+      subtitle,
+      accent,
+      vote,
+      onVoteChange,
+      isExpandable,
+      isExpanded,
+      onToggleExpand,
+      depth = 0,
+      icon
+    }) => (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0.75rem 1rem',
+          borderRadius: '0.75rem',
+          backgroundColor: depth === 0 ? '#F5F7FB' : depth === 1 ? '#FFFFFF' : '#F9FAFB',
+          marginBottom: '0.5rem',
+          marginLeft: `${depth * 1.5}rem`,
+          border: depth > 0 ? '1px solid #E5E7EB' : 'none'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+          {isExpandable && (
+            <button
+              onClick={onToggleExpand}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '0.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                color: '#6B7280'
+              }}
+            >
+              {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </button>
+          )}
+          {!isExpandable && depth > 0 && (
+            <div style={{ width: '24px' }} />
+          )}
+          {icon && <div style={{ color: accent || '#6B7280' }}>{icon}</div>}
+          <div>
+            <div style={{ fontWeight: depth === 0 ? 700 : 600, color: '#111827', fontSize: depth > 1 ? '0.9rem' : '1rem' }}>
+              {title}
+            </div>
+            {subtitle ? (
+              <div style={{ color: '#6B7280', fontSize: '0.85rem' }}>{subtitle}</div>
+            ) : null}
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {VOTE_CHOICES.map(choice => (
+            <VoteButton
+              key={choice.key}
+              label={choice.label}
+              color={choice.key === 'undecided' ? accent ?? '#4B5563' : choice.color}
+              active={vote === choice.key}
+              onClick={() => onVoteChange(choice.key)}
+            />
+          ))}
+        </div>
+      </div>
+    );
+
+    const SummaryBadge = ({ label, value, color }) => (
+      <div
+        style={{
+          background: color,
+          color: '#FFFFFF',
+          borderRadius: '0.75rem',
+          padding: '0.8rem 1rem',
+          flex: 1,
+          minWidth: '130px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.3rem'
+        }}
+      >
+        <span style={{ fontSize: '0.75rem', letterSpacing: '0.02em' }}>{label}</span>
+        <strong style={{ fontSize: '1.4rem', lineHeight: 1 }}>{value}</strong>
+      </div>
+    );
+
+    const Hemicycle = ({ meps, finalVotes }) => {
+      const [hoveredSeat, setHoveredSeat] = useState(null);
+
+      // Calculate seat positions in a hemicycle layout
+      const calculateSeatPositions = () => {
+        const seats = [];
+        const centerX = 400;
+        const centerY = 380;
+        const rows = 10;
+        const seatsPerRow = Math.ceil(meps.length / rows);
+
+        let mepIndex = 0;
+        for (let row = 0; row < rows; row++) {
+          const radius = 280 - (row * 25);
+          const seatsInThisRow = Math.min(
+            Math.ceil(seatsPerRow * (1 - row * 0.08)),
+            meps.length - mepIndex
+          );
+
+          for (let i = 0; i < seatsInThisRow && mepIndex < meps.length; i++) {
+            const angle = Math.PI * (0.15 + (i / (seatsInThisRow - 1 || 1)) * 0.7);
+            const x = centerX - Math.cos(angle) * radius;
+            const y = centerY - Math.sin(angle) * radius;
+
+            const mep = meps[mepIndex];
+            const vote = finalVotes[mep.id] || 'undecided';
+            const group = POLITICAL_GROUPS.find(g => g.ref === mep.groupRef);
+
+            seats.push({
+              x,
+              y,
+              mep,
+              vote,
+              group,
+              index: mepIndex
+            });
+
+            mepIndex++;
+          }
+        }
+
+        return seats;
+      };
+
+      const seats = useMemo(() => calculateSeatPositions(), [meps, finalVotes]);
+
+      const getVoteColor = (vote) => {
+        const choice = VOTE_CHOICES.find(c => c.key === vote);
+        return choice ? choice.color : '#4B5563';
+      };
+
+      return (
+        <div style={{ position: 'relative', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+          <svg
+            viewBox="0 0 800 400"
+            style={{
+              width: '100%',
+              height: 'auto',
+              backgroundColor: '#F9FAFB',
+              borderRadius: '1rem',
+              border: '1px solid #E5E7EB'
+            }}
+          >
+            {/* Background arcs */}
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(row => {
+              const radius = 280 - (row * 25);
+              return (
+                <path
+                  key={row}
+                  d={`M ${400 - Math.cos(Math.PI * 0.15) * radius} ${380 - Math.sin(Math.PI * 0.15) * radius}
+                      A ${radius} ${radius} 0 0 1 ${400 - Math.cos(Math.PI * 0.85) * radius} ${380 - Math.sin(Math.PI * 0.85) * radius}`}
+                  stroke="#E5E7EB"
+                  strokeWidth="1"
+                  fill="none"
+                />
+              );
+            })}
+
+            {/* Seats */}
+            {seats.map((seat) => (
+              <circle
+                key={seat.index}
+                cx={seat.x}
+                cy={seat.y}
+                r={hoveredSeat === seat.index ? 5.5 : 4.5}
+                fill={getVoteColor(seat.vote)}
+                stroke={seat.group?.color || '#6B7280'}
+                strokeWidth={hoveredSeat === seat.index ? 2 : 1.5}
+                style={{
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  opacity: hoveredSeat !== null && hoveredSeat !== seat.index ? 0.5 : 1
+                }}
+                onMouseEnter={() => setHoveredSeat(seat.index)}
+                onMouseLeave={() => setHoveredSeat(null)}
+              />
+            ))}
+
+            {/* Podium/Speaker area */}
+            <rect
+              x="350"
+              y="360"
+              width="100"
+              height="30"
+              rx="5"
+              fill="#1F2937"
+              opacity="0.1"
+            />
+          </svg>
+
+          {/* Tooltip */}
+          {hoveredSeat !== null && seats[hoveredSeat] && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '10px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #E5E7EB',
+                borderRadius: '0.5rem',
+                padding: '0.75rem 1rem',
+                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
+                zIndex: 10,
+                minWidth: '250px',
+                pointerEvents: 'none'
+              }}
+            >
+              <div style={{ fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>
+                {seats[hoveredSeat].mep.fullName}
+              </div>
+              <div style={{ fontSize: '0.85rem', color: '#6B7280', marginBottom: '0.5rem' }}>
+                {seats[hoveredSeat].mep.countryName} ({seats[hoveredSeat].mep.countryCode})
+              </div>
+              <div style={{ fontSize: '0.85rem', marginBottom: '0.25rem' }}>
+                <span style={{ color: '#4B5563' }}>Grupo: </span>
+                <span style={{ fontWeight: 600, color: seats[hoveredSeat].group?.color || '#111827' }}>
+                  {seats[hoveredSeat].group?.shortName || 'N/A'}
+                </span>
+              </div>
+              <div style={{ fontSize: '0.85rem' }}>
+                <span style={{ color: '#4B5563' }}>Voto: </span>
+                <span
+                  style={{
+                    fontWeight: 600,
+                    color: getVoteColor(seats[hoveredSeat].vote)
+                  }}
+                >
+                  {VOTE_CHOICES.find(c => c.key === seats[hoveredSeat].vote)?.label || 'N/A'}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const HemicicloParlamientoEuropeo = () => {
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState(null);
+      const [meps, setMeps] = useState([]);
+      const [groupVotes, setGroupVotes] = useState({});
+      const [countryVotes, setCountryVotes] = useState({});
+      const [partyVotes, setPartyVotes] = useState({});
+      const [mepVotes, setMepVotes] = useState({});
+      const [controlLevel, setControlLevel] = useState('group');
+      const [lastUpdated, setLastUpdated] = useState(null);
+      const [expandedGroups, setExpandedGroups] = useState({});
+      const [expandedCountries, setExpandedCountries] = useState({});
+
+      useEffect(() => {
+        let cancelled = false;
+
+        const loadData = async () => {
+          setLoading(true);
+          setError(null);
+
+          try {
+            if (typeof window === 'undefined') {
+              return;
+            }
+
+            const results = await Promise.all(
+              POLITICAL_GROUPS.map(group => fetchGroupMembers(group))
+            );
+
+            const unique = new Map();
+            results.forEach(list => {
+              list.forEach(mep => {
+                if (!unique.has(mep.id)) {
+                  unique.set(mep.id, mep);
+                }
+              });
+            });
+
+            if (!cancelled) {
+              const sorted = Array.from(unique.values()).sort((a, b) =>
+                a.fullName.localeCompare(b.fullName, 'es', { sensitivity: 'base' })
+              );
+              setMeps(sorted);
+              setLastUpdated(new Date());
+            }
+          } catch (err) {
+            if (!cancelled) {
+              setError(err);
+            }
+          } finally {
+            if (!cancelled) {
+              setLoading(false);
+            }
+          }
+        };
+
+        loadData();
+
+        return () => {
+          cancelled = true;
+        };
+      }, []);
+
+      useEffect(() => {
+        if (!loading && meps.length) {
+          setGroupVotes(prev => {
+            const next = { ...prev };
+            POLITICAL_GROUPS.forEach(group => {
+              if (next[group.ref] === undefined) {
+                next[group.ref] = 'undecided';
+              }
+            });
+            return next;
+          });
+
+          const seenCountries = new Set(meps.map(mep => mep.countryName));
+          setCountryVotes(prev => {
+            const next = { ...prev };
+            seenCountries.forEach(country => {
+              if (next[country] === undefined) {
+                next[country] = 'undecided';
+              }
+            });
+            return next;
+          });
+        }
+      }, [loading, meps]);
+
+      const uniqueCountries = useMemo(() => {
+        const map = new Map();
+        meps.forEach(mep => {
+          if (!map.has(mep.countryName)) {
+            map.set(mep.countryName, {
+              name: mep.countryName,
+              code: mep.countryCode
+            });
+          }
+        });
+        return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'es'));
+      }, [meps]);
+
+      const finalVotes = useMemo(() => {
+        const votes = {};
+        meps.forEach(mep => {
+          // Hierarchical vote resolution with priority:
+          // 1. Individual MEP vote (highest priority)
+          // 2. National party vote
+          // 3. Country vote
+          // 4. Political group vote (lowest priority)
+
+          let vote = 'undecided';
+
+          // Level 1: Group vote (base level)
+          if (groupVotes[mep.groupRef] !== undefined) {
+            vote = groupVotes[mep.groupRef];
+          }
+
+          // Level 2: Country vote (overrides group)
+          if (countryVotes[mep.countryName] !== undefined) {
+            vote = countryVotes[mep.countryName];
+          }
+
+          // Level 3: Party vote (overrides country and group)
+          const partyKey = `${mep.countryName}__${mep.nationalParty}`;
+          if (partyVotes[partyKey] !== undefined) {
+            vote = partyVotes[partyKey];
+          }
+
+          // Level 4: Individual MEP vote (highest priority, overrides everything)
+          if (mepVotes[mep.id] !== undefined) {
+            vote = mepVotes[mep.id];
+          }
+
+          votes[mep.id] = vote;
+        });
+        return votes;
+      }, [meps, groupVotes, countryVotes, partyVotes, mepVotes]);
+
+      const overallSummary = useMemo(() => {
+        const summary = createVoteCounter();
+        meps.forEach(mep => {
+          const vote = finalVotes[mep.id] ?? 'undecided';
+          summary[vote] += 1;
+        });
+        return summary;
+      }, [meps, finalVotes]);
+
+      const aggregateByGroup = useMemo(() => {
+        const entries = new Map(
+          POLITICAL_GROUPS.map(group => [
+            group.ref,
+            {
+              group,
+              counts: createVoteCounter(),
+              total: 0
+            }
+          ])
+        );
+
+        meps.forEach(mep => {
+          const bucket = entries.get(mep.groupRef);
+          if (!bucket) {
+            return;
+          }
+          const vote = finalVotes[mep.id] ?? 'undecided';
+          bucket.counts[vote] += 1;
+          bucket.total += 1;
+        });
+
+        return Array.from(entries.values()).sort((a, b) => b.total - a.total);
+      }, [meps, finalVotes]);
+
+      const aggregateByCountry = useMemo(() => {
+        const entries = new Map();
+        meps.forEach(mep => {
+          if (!entries.has(mep.countryName)) {
+            entries.set(mep.countryName, {
+              name: mep.countryName,
+              code: mep.countryCode,
+              counts: createVoteCounter(),
+              total: 0
+            });
+          }
+          const bucket = entries.get(mep.countryName);
+          bucket.total += 1;
+          const vote = finalVotes[mep.id] ?? 'undecided';
+          bucket.counts[vote] += 1;
+        });
+
+        return Array.from(entries.values()).sort((a, b) => b.total - a.total);
+      }, [meps, finalVotes]);
+
+      const totalSeats = meps.length;
+
+      const exportToExcel = () => {
+        const wb = XLSX.utils.book_new();
+
+        // Sheet 1: Resumen General
+        const summaryData = [
+          ['SIMULACIÓN DE VOTACIÓN - PARLAMENTO EUROPEO'],
+          ['Fecha de exportación:', new Date().toLocaleString('es-ES')],
+          ['Fecha de datos:', lastUpdated ? lastUpdated.toLocaleString('es-ES') : 'N/A'],
+          [],
+          ['RESUMEN GENERAL'],
+          ['Total de escaños:', totalSeats],
+          ['Votos a favor:', overallSummary.yes],
+          ['Votos en contra:', overallSummary.no],
+          ['Abstenciones:', overallSummary.abstain],
+          ['Votos libres:', overallSummary.undecided],
+          [],
+          ['Resultado:', overallSummary.yes > (totalSeats / 2) ? 'APROBADO' : 'RECHAZADO'],
+          ['Mayoría necesaria:', Math.ceil(totalSeats / 2)],
+          ['Diferencia:', overallSummary.yes - Math.ceil(totalSeats / 2)]
+        ];
+        const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
+        XLSX.utils.book_append_sheet(wb, ws1, 'Resumen');
+
+        // Sheet 2: Resultados por Grupo Político
+        const groupData = [
+          ['Grupo Político', 'Escaños', 'Sí', 'No', 'Abstenciones', 'Libre']
+        ];
+        aggregateByGroup.forEach(entry => {
+          groupData.push([
+            `${entry.group.shortName} - ${entry.group.longName}`,
+            entry.total,
+            entry.counts.yes,
+            entry.counts.no,
+            entry.counts.abstain,
+            entry.counts.undecided
+          ]);
+        });
+        const ws2 = XLSX.utils.aoa_to_sheet(groupData);
+        XLSX.utils.book_append_sheet(wb, ws2, 'Por Grupo');
+
+        // Sheet 3: Resultados por País
+        const countryData = [
+          ['País', 'Código', 'Escaños', 'Sí', 'No', 'Abstenciones', 'Libre']
+        ];
+        aggregateByCountry.forEach(entry => {
+          countryData.push([
+            entry.name,
+            entry.code,
+            entry.total,
+            entry.counts.yes,
+            entry.counts.no,
+            entry.counts.abstain,
+            entry.counts.undecided
+          ]);
+        });
+        const ws3 = XLSX.utils.aoa_to_sheet(countryData);
+        XLSX.utils.book_append_sheet(wb, ws3, 'Por País');
+
+        // Sheet 4: Detalle de Eurodiputados
+        const mepData = [
+          ['Nombre', 'País', 'Código País', 'Grupo Político', 'Partido Nacional', 'Voto']
+        ];
+        meps.forEach(mep => {
+          const group = POLITICAL_GROUPS.find(g => g.ref === mep.groupRef);
+          const vote = finalVotes[mep.id] || 'undecided';
+          const voteLabel = VOTE_CHOICES.find(c => c.key === vote)?.label || 'N/A';
+
+          mepData.push([
+            mep.fullName,
+            mep.countryName,
+            mep.countryCode,
+            group?.shortName || 'N/A',
+            mep.nationalParty,
+            voteLabel
+          ]);
+        });
+        const ws4 = XLSX.utils.aoa_to_sheet(mepData);
+        XLSX.utils.book_append_sheet(wb, ws4, 'Detalle Eurodiputados');
+
+        // Sheet 5: Configuración de Votos
+        const configData = [
+          ['CONFIGURACIÓN DE VOTOS APLICADA'],
+          [],
+          ['NIVEL GRUPO POLÍTICO:']
+        ];
+
+        POLITICAL_GROUPS.forEach(group => {
+          if (groupVotes[group.ref]) {
+            const voteLabel = VOTE_CHOICES.find(c => c.key === groupVotes[group.ref])?.label;
+            configData.push([group.shortName, voteLabel]);
+          }
+        });
+
+        configData.push([], ['NIVEL PAÍS:']);
+        Object.entries(countryVotes).forEach(([country, vote]) => {
+          const voteLabel = VOTE_CHOICES.find(c => c.key === vote)?.label;
+          configData.push([country, voteLabel]);
+        });
+
+        configData.push([], ['NIVEL PARTIDO:']);
+        Object.entries(partyVotes).forEach(([partyKey, vote]) => {
+          const [country, party] = partyKey.split('__');
+          const voteLabel = VOTE_CHOICES.find(c => c.key === vote)?.label;
+          configData.push([`${party} (${country})`, voteLabel]);
+        });
+
+        const ws5 = XLSX.utils.aoa_to_sheet(configData);
+        XLSX.utils.book_append_sheet(wb, ws5, 'Configuración');
+
+        // Exportar archivo
+        const fileName = `Simulacion_PE_${new Date().toISOString().slice(0,10)}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+      };
+
+      const renderControls = () => {
+        if (controlLevel === 'group') {
+          // Group > Country > Party hierarchy
+          return POLITICAL_GROUPS.map(group => {
+            const groupMeps = meps.filter(m => m.groupRef === group.ref);
+            const groupTotal = groupMeps.length;
+            const isGroupExpanded = expandedGroups[group.ref];
+
+            // Get countries in this group
+            const groupCountries = [...new Set(groupMeps.map(m => m.countryName))].sort();
+
+            return (
+              <React.Fragment key={group.ref}>
+                <ControlRow
+                  title={`${group.shortName} - ${group.longName}`}
+                  subtitle={`${groupTotal} escaños`}
+                  accent={group.color}
+                  vote={groupVotes[group.ref]}
+                  onVoteChange={choice =>
+                    setGroupVotes(prev => ({ ...prev, [group.ref]: choice }))
+                  }
+                  isExpandable={groupCountries.length > 0}
+                  isExpanded={isGroupExpanded}
+                  onToggleExpand={() =>
+                    setExpandedGroups(prev => ({ ...prev, [group.ref]: !prev[group.ref] }))
+                  }
+                  depth={0}
+                  icon={<Users size={16} />}
+                />
+
+                {isGroupExpanded && groupCountries.map(countryName => {
+                  const countryMeps = groupMeps.filter(m => m.countryName === countryName);
+                  const countryKey = `${group.ref}__${countryName}`;
+                  const isCountryExpanded = expandedCountries[countryKey];
+
+                  // Get parties in this country
+                  const parties = [...new Set(countryMeps.map(m => m.nationalParty))].sort();
+
+                  return (
+                    <React.Fragment key={countryKey}>
+                      <ControlRow
+                        title={countryName}
+                        subtitle={`${countryMeps.length} escaños`}
+                        accent={group.color}
+                        vote={countryVotes[countryName]}
+                        onVoteChange={choice =>
+                          setCountryVotes(prev => ({ ...prev, [countryName]: choice }))
+                        }
+                        isExpandable={parties.length > 1}
+                        isExpanded={isCountryExpanded}
+                        onToggleExpand={() =>
+                          setExpandedCountries(prev => ({ ...prev, [countryKey]: !prev[countryKey] }))
+                        }
+                        depth={1}
+                        icon={<Flag size={14} />}
+                      />
+
+                      {isCountryExpanded && parties.map(party => {
+                        const partyMeps = countryMeps.filter(m => m.nationalParty === party);
+                        const partyKey = `${countryName}__${party}`;
+
+                        return (
+                          <ControlRow
+                            key={partyKey}
+                            title={party}
+                            subtitle={`${partyMeps.length} escaños`}
+                            accent={group.color}
+                            vote={partyVotes[partyKey]}
+                            onVoteChange={choice =>
+                              setPartyVotes(prev => ({ ...prev, [partyKey]: choice }))
+                            }
+                            depth={2}
+                          />
+                        );
+                      })}
+                    </React.Fragment>
+                  );
+                })}
+              </React.Fragment>
+            );
+          });
+        }
+
+        // Country > Group > Party hierarchy
+        return uniqueCountries.map(country => {
+          const countryMeps = meps.filter(m => m.countryName === country.name);
+          const countryTotal = countryMeps.length;
+          const isCountryExpanded = expandedCountries[country.name];
+
+          // Get groups in this country
+          const countryGroups = [...new Set(countryMeps.map(m => m.groupRef))];
+
+          return (
+            <React.Fragment key={country.name}>
+              <ControlRow
+                title={country.name}
+                subtitle={`${countryTotal} escaños`}
+                accent="#1F2937"
+                vote={countryVotes[country.name]}
+                onVoteChange={choice =>
+                  setCountryVotes(prev => ({ ...prev, [country.name]: choice }))
+                }
+                isExpandable={countryGroups.length > 0}
+                isExpanded={isCountryExpanded}
+                onToggleExpand={() =>
+                  setExpandedCountries(prev => ({ ...prev, [country.name]: !prev[country.name] }))
+                }
+                depth={0}
+                icon={<Flag size={16} />}
+              />
+
+              {isCountryExpanded && countryGroups.map(groupRef => {
+                const group = POLITICAL_GROUPS.find(g => g.ref === groupRef);
+                const groupMeps = countryMeps.filter(m => m.groupRef === groupRef);
+                const groupKey = `${country.name}__${groupRef}`;
+                const isGroupExpanded = expandedGroups[groupKey];
+
+                // Get parties in this group
+                const parties = [...new Set(groupMeps.map(m => m.nationalParty))].sort();
+
+                return (
+                  <React.Fragment key={groupKey}>
+                    <ControlRow
+                      title={group?.shortName || 'N/A'}
+                      subtitle={`${groupMeps.length} escaños`}
+                      accent={group?.color}
+                      vote={groupVotes[groupRef]}
+                      onVoteChange={choice =>
+                        setGroupVotes(prev => ({ ...prev, [groupRef]: choice }))
+                      }
+                      isExpandable={parties.length > 1}
+                      isExpanded={isGroupExpanded}
+                      onToggleExpand={() =>
+                        setExpandedGroups(prev => ({ ...prev, [groupKey]: !prev[groupKey] }))
+                      }
+                      depth={1}
+                      icon={<Users size={14} />}
+                    />
+
+                    {isGroupExpanded && parties.map(party => {
+                      const partyMeps = groupMeps.filter(m => m.nationalParty === party);
+                      const partyKey = `${country.name}__${party}`;
+
+                      return (
+                        <ControlRow
+                          key={partyKey}
+                          title={party}
+                          subtitle={`${partyMeps.length} escaños`}
+                          accent={group?.color}
+                          vote={partyVotes[partyKey]}
+                          onVoteChange={choice =>
+                            setPartyVotes(prev => ({ ...prev, [partyKey]: choice }))
+                          }
+                          depth={2}
+                        />
+                      );
+                    })}
+                  </React.Fragment>
+                );
+              })}
+            </React.Fragment>
+          );
+        });
+      };
+
+      const renderTableHeader = () => (
+        <thead>
+          <tr
+            style={{
+              textAlign: 'left',
+              backgroundColor: '#111827',
+              color: '#FFFFFF'
+            }}
+          >
+            <th style={{ padding: '0.65rem 0.75rem', minWidth: '220px' }}>Bloque</th>
+            <th style={{ padding: '0.65rem 0.75rem' }}>Escanos</th>
+            <th style={{ padding: '0.65rem 0.75rem' }}>Si</th>
+            <th style={{ padding: '0.65rem 0.75rem' }}>No</th>
+            <th style={{ padding: '0.65rem 0.75rem' }}>Abstenciones</th>
+            <th style={{ padding: '0.65rem 0.75rem' }}>Libre</th>
+          </tr>
+        </thead>
+      );
+
+      return (
+        <div
+          style={{
+            maxWidth: '1200px',
+            margin: '0 auto',
+            padding: '2rem 1.5rem',
+            fontFamily: 'Inter, system-ui, sans-serif'
+          }}
+        >
+          <header
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+              marginBottom: '2rem'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <Users size={32} color="#2563EB" />
+              <div>
+                <h1 style={{ margin: 0, fontSize: '1.9rem', color: '#111827' }}>
+                  Simulador de votaciones - Parlamento Europeo
+                </h1>
+                <p style={{ margin: '0.2rem 0 0', color: '#4B5563' }}>
+                  Controla el voto por grupo politico o por pais y visualiza el resultado agregado en
+                  tiempo real.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setControlLevel('group')}
+                style={{
+                  padding: '0.65rem 1.1rem',
+                  borderRadius: '9999px',
+                  border: controlLevel === 'group' ? 'none' : '1px solid #CBD5F5',
+                  backgroundColor: controlLevel === 'group' ? '#2563EB' : 'transparent',
+                  color: controlLevel === 'group' ? '#FFFFFF' : '#1F2937',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <Users size={18} />
+                  Control por grupo
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setControlLevel('country')}
+                style={{
+                  padding: '0.65rem 1.1rem',
+                  borderRadius: '9999px',
+                  border: controlLevel === 'country' ? 'none' : '1px solid #CBD5F5',
+                  backgroundColor: controlLevel === 'country' ? '#2563EB' : 'transparent',
+                  color: controlLevel === 'country' ? '#FFFFFF' : '#1F2937',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <Globe2 size={18} />
+                  Control por pais
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setGroupVotes({});
+                  setCountryVotes({});
+                  setPartyVotes({});
+                  setMepVotes({});
+                  setExpandedGroups({});
+                  setExpandedCountries({});
+                }}
+                style={{
+                  padding: '0.65rem 1.1rem',
+                  borderRadius: '9999px',
+                  border: '1px solid #CBD5F5',
+                  backgroundColor: 'transparent',
+                  color: '#1F2937',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <RefreshCw size={18} />
+                  Reiniciar
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={exportToExcel}
+                disabled={loading || error || meps.length === 0}
+                style={{
+                  padding: '0.65rem 1.1rem',
+                  borderRadius: '9999px',
+                  border: 'none',
+                  backgroundColor: '#16A34A',
+                  color: '#FFFFFF',
+                  fontWeight: 600,
+                  cursor: loading || error ? 'not-allowed' : 'pointer',
+                  opacity: loading || error ? 0.5 : 1
+                }}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <Download size={18} />
+                  Exportar a Excel
+                </span>
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <SummaryBadge label="Total escanos" value={totalSeats} color="#111827" />
+              <SummaryBadge label="Si" value={overallSummary.yes} color="#16A34A" />
+              <SummaryBadge label="No" value={overallSummary.no} color="#DC2626" />
+              <SummaryBadge label="Abstenciones" value={overallSummary.abstain} color="#D97706" />
+              <SummaryBadge label="Libre" value={overallSummary.undecided} color="#4B5563" />
+            </div>
+
+            {lastUpdated ? (
+              <div style={{ color: '#6B7280', fontSize: '0.85rem' }}>
+                Datos cargados {lastUpdated.toLocaleString('es-ES')} - Fuente oficial Parlamento
+                Europeo (archivos XML locales).
+              </div>
+            ) : null}
+          </header>
+
+          {!loading && !error && meps.length > 0 ? (
+            <section style={{ marginBottom: '2.5rem' }}>
+              <h2
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginBottom: '1rem',
+                  fontSize: '1.3rem',
+                  color: '#111827'
+                }}
+              >
+                <Users size={20} />
+                Hemiciclo del Parlamento Europeo
+              </h2>
+              <Hemicycle meps={meps} finalVotes={finalVotes} />
+              <div style={{ textAlign: 'center', marginTop: '1rem', color: '#6B7280', fontSize: '0.85rem' }}>
+                Pasa el ratón sobre los escaños para ver detalles de cada eurodiputado
+              </div>
+            </section>
+          ) : null}
+
+          {loading ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.75rem',
+                padding: '3rem',
+                borderRadius: '1rem',
+                backgroundColor: '#F3F4F6',
+                color: '#111827',
+                marginBottom: '2rem'
+              }}
+            >
+              <Loader2 size={22} />
+              Cargando datos oficiales...
+            </div>
+          ) : null}
+
+          {error ? (
+            <div
+              style={{
+                display: 'flex',
+                gap: '0.75rem',
+                padding: '1rem 1.25rem',
+                borderRadius: '0.75rem',
+                backgroundColor: '#FEF2F2',
+                color: '#991B1B',
+                marginBottom: '1.5rem'
+              }}
+            >
+              <AlertCircle size={22} />
+              <div>
+                <strong>Ha ocurrido un problema al descargar los datos.</strong>
+                <div style={{ marginTop: '0.3rem' }}>
+                  {error.message}. Comprueba la conexion o descarga manualmente los XML desde la
+                  busqueda avanzada del Parlamento y vuelve a intentarlo.
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {!loading && !error ? (
+            <>
+              <section style={{ marginBottom: '2.5rem' }}>
+                <h2
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '1rem',
+                    fontSize: '1.3rem',
+                    color: '#111827'
+                  }}
+                >
+                  {controlLevel === 'group' ? <Users size={20} /> : <Flag size={20} />}
+                  {controlLevel === 'group'
+                    ? 'Ajusta el voto por grupo politico'
+                    : 'Ajusta el voto por pais'}
+                </h2>
+                <div>{renderControls()}</div>
+              </section>
+
+              <section style={{ marginBottom: '2.5rem' }}>
+                <h2
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '1rem',
+                    fontSize: '1.3rem',
+                    color: '#111827'
+                  }}
+                >
+                  <CheckCircle2 size={20} />
+                  Resultado agregado por grupo politico
+                </h2>
+                <table
+                  style={{
+                    width: '100%',
+                    borderCollapse: 'separate',
+                    borderSpacing: 0,
+                    overflow: 'hidden',
+                    borderRadius: '1rem',
+                    boxShadow: '0 10px 30px rgba(15, 23, 42, 0.08)',
+                    marginBottom: '1.5rem'
+                  }}
+                >
+                  {renderTableHeader()}
+                  <tbody>
+                    {aggregateByGroup.map(entry => (
+                      <tr
+                        key={entry.group.ref}
+                        style={{
+                          backgroundColor: '#FFFFFF',
+                          color: '#111827'
+                        }}
+                      >
+                        <td style={{ padding: '0.65rem 0.75rem' }}>
+                          <div style={{ fontWeight: 600 }}>
+                            {entry.group.shortName}{' '}
+                            <span style={{ color: '#6B7280', fontWeight: 500 }}>
+                              ({entry.group.longName})
+                            </span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '0.65rem 0.75rem' }}>{entry.total}</td>
+                        <td style={{ padding: '0.65rem 0.75rem', color: '#16A34A' }}>
+                          {entry.counts.yes}
+                        </td>
+                        <td style={{ padding: '0.65rem 0.75rem', color: '#DC2626' }}>
+                          {entry.counts.no}
+                        </td>
+                        <td style={{ padding: '0.65rem 0.75rem', color: '#D97706' }}>
+                          {entry.counts.abstain}
+                        </td>
+                        <td style={{ padding: '0.65rem 0.75rem', color: '#4B5563' }}>
+                          {entry.counts.undecided}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </section>
+
+              <section>
+                <h2
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '1rem',
+                    fontSize: '1.3rem',
+                    color: '#111827'
+                  }}
+                >
+                  <Flag size={20} />
+                  Resultado agregado por pais
+                </h2>
+                <table
+                  style={{
+                    width: '100%',
+                    borderCollapse: 'separate',
+                    borderSpacing: 0,
+                    overflow: 'hidden',
+                    borderRadius: '1rem',
+                    boxShadow: '0 10px 30px rgba(15, 23, 42, 0.08)'
+                  }}
+                >
+                  {renderTableHeader()}
+                  <tbody>
+                    {aggregateByCountry.map(entry => (
+                      <tr
+                        key={entry.name}
+                        style={{
+                          backgroundColor: '#FFFFFF',
+                          color: '#111827'
+                        }}
+                      >
+                        <td style={{ padding: '0.65rem 0.75rem' }}>
+                          <div style={{ fontWeight: 600 }}>
+                            {entry.name}{' '}
+                            <span style={{ color: '#6B7280', fontWeight: 500 }}>({entry.code})</span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '0.65rem 0.75rem' }}>{entry.total}</td>
+                        <td style={{ padding: '0.65rem 0.75rem', color: '#16A34A' }}>
+                          {entry.counts.yes}
+                        </td>
+                        <td style={{ padding: '0.65rem 0.75rem', color: '#DC2626' }}>
+                          {entry.counts.no}
+                        </td>
+                        <td style={{ padding: '0.65rem 0.75rem', color: '#D97706' }}>
+                          {entry.counts.abstain}
+                        </td>
+                        <td style={{ padding: '0.65rem 0.75rem', color: '#4B5563' }}>
+                          {entry.counts.undecided}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </section>
+            </>
+          ) : null}
+        </div>
+      );
+    };
+
+    // Add spinner animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Render the app
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<HemicicloParlamientoEuropeo />);
+  </script>
+</body>
+</html>
