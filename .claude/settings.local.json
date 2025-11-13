@@ -9,7 +9,10 @@
       "Bash(cmd /c start-server.bat)",
       "Bash(timeout /t 3)",
       "Bash(powershell -ExecutionPolicy Bypass -File server.ps1:*)",
-      "Bash(powershell -ExecutionPolicy Bypass -File download-data.ps1:*)"
+      "Bash(powershell -ExecutionPolicy Bypass -File download-data.ps1:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

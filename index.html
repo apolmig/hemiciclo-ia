@@ -560,6 +560,8 @@
       const [meps, setMeps] = useState([]);
       const [groupVotes, setGroupVotes] = useState({});
       const [countryVotes, setCountryVotes] = useState({});
+      const [groupCountryVotes, setGroupCountryVotes] = useState({}); // For country votes within a group (mode: group->country)
+      const [countryGroupVotes, setCountryGroupVotes] = useState({}); // For group votes within a country (mode: country->group)
       const [partyVotes, setPartyVotes] = useState({});
       const [mepVotes, setMepVotes] = useState({});
       const [controlLevel, setControlLevel] = useState('group');
@@ -658,31 +660,45 @@
       const finalVotes = useMemo(() => {
         const votes = {};
         meps.forEach(mep => {
-          // Hierarchical vote resolution with priority:
-          // 1. Individual MEP vote (highest priority)
-          // 2. National party vote
-          // 3. Country vote
-          // 4. Political group vote (lowest priority)
+          // Hierarchical vote resolution with priority (from lowest to highest):
+          // 1. Political group vote (global)
+          // 2. Country vote (global)
+          // 3. Group+Country vote (country within a specific group, mode: group->country)
+          // 4. Country+Group vote (group within a specific country, mode: country->group)
+          // 5. National party vote
+          // 6. Individual MEP vote (highest priority)
 
           let vote = 'undecided';
 
-          // Level 1: Group vote (base level)
+          // Level 1: Group vote (global, base level)
           if (groupVotes[mep.groupRef] !== undefined) {
             vote = groupVotes[mep.groupRef];
           }
 
-          // Level 2: Country vote (overrides group)
+          // Level 2: Country vote (global, overrides group)
           if (countryVotes[mep.countryName] !== undefined) {
             vote = countryVotes[mep.countryName];
           }
 
-          // Level 3: Party vote (overrides country and group)
+          // Level 3: Group+Country vote (country within a group, overrides global country)
+          const groupCountryKey = `${mep.groupRef}__${mep.countryName}`;
+          if (groupCountryVotes[groupCountryKey] !== undefined) {
+            vote = groupCountryVotes[groupCountryKey];
+          }
+
+          // Level 4: Country+Group vote (group within a country, overrides global group)
+          const countryGroupKey = `${mep.countryName}__${mep.groupRef}`;
+          if (countryGroupVotes[countryGroupKey] !== undefined) {
+            vote = countryGroupVotes[countryGroupKey];
+          }
+
+          // Level 5: Party vote (overrides all previous levels)
           const partyKey = `${mep.countryName}__${mep.nationalParty}`;
           if (partyVotes[partyKey] !== undefined) {
             vote = partyVotes[partyKey];
           }
 
-          // Level 4: Individual MEP vote (highest priority, overrides everything)
+          // Level 6: Individual MEP vote (highest priority, overrides everything)
           if (mepVotes[mep.id] !== undefined) {
             vote = mepVotes[mep.id];
           }
@@ -690,7 +706,7 @@
           votes[mep.id] = vote;
         });
         return votes;
-      }, [meps, groupVotes, countryVotes, partyVotes, mepVotes]);
+      }, [meps, groupVotes, countryVotes, groupCountryVotes, countryGroupVotes, partyVotes, mepVotes]);
 
       const overallSummary = useMemo(() => {
         const summary = createVoteCounter();
@@ -841,10 +857,26 @@
           }
         });
 
-        configData.push([], ['NIVEL PAÍS:']);
+        configData.push([], ['NIVEL PAÍS (GLOBAL):']);
         Object.entries(countryVotes).forEach(([country, vote]) => {
           const voteLabel = VOTE_CHOICES.find(c => c.key === vote)?.label;
           configData.push([country, voteLabel]);
+        });
+
+        configData.push([], ['NIVEL PAÍS DENTRO DE GRUPO:']);
+        Object.entries(groupCountryVotes).forEach(([key, vote]) => {
+          const [groupRef, country] = key.split('__');
+          const group = POLITICAL_GROUPS.find(g => g.ref === groupRef);
+          const voteLabel = VOTE_CHOICES.find(c => c.key === vote)?.label;
+          configData.push([`${country} en ${group?.shortName || groupRef}`, voteLabel]);
+        });
+
+        configData.push([], ['NIVEL GRUPO DENTRO DE PAÍS:']);
+        Object.entries(countryGroupVotes).forEach(([key, vote]) => {
+          const [country, groupRef] = key.split('__');
+          const group = POLITICAL_GROUPS.find(g => g.ref === groupRef);
+          const voteLabel = VOTE_CHOICES.find(c => c.key === vote)?.label;
+          configData.push([`${group?.shortName || groupRef} en ${country}`, voteLabel]);
         });
 
         configData.push([], ['NIVEL PARTIDO:']);
@@ -906,9 +938,9 @@
                         title={countryName}
                         subtitle={`${countryMeps.length} escaños`}
                         accent={group.color}
-                        vote={countryVotes[countryName]}
+                        vote={groupCountryVotes[countryKey]}
                         onVoteChange={choice =>
-                          setCountryVotes(prev => ({ ...prev, [countryName]: choice }))
+                          setGroupCountryVotes(prev => ({ ...prev, [countryKey]: choice }))
                         }
                         isExpandable={parties.length > 1}
                         isExpanded={isCountryExpanded}
@@ -988,9 +1020,9 @@
                       title={group?.shortName || 'N/A'}
                       subtitle={`${groupMeps.length} escaños`}
                       accent={group?.color}
-                      vote={groupVotes[groupRef]}
+                      vote={countryGroupVotes[groupKey]}
                       onVoteChange={choice =>
-                        setGroupVotes(prev => ({ ...prev, [groupRef]: choice }))
+                        setCountryGroupVotes(prev => ({ ...prev, [groupKey]: choice }))
                       }
                       isExpandable={parties.length > 1}
                       isExpanded={isGroupExpanded}
@@ -1118,6 +1150,8 @@
                 onClick={() => {
                   setGroupVotes({});
                   setCountryVotes({});
+                  setGroupCountryVotes({});
+                  setCountryGroupVotes({});
                   setPartyVotes({});
                   setMepVotes({});
                   setExpandedGroups({});
