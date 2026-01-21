@@ -58,8 +58,9 @@ Visita: [https://[tu-usuario].github.io/hemiciclo-ia](https://[tu-usuario].githu
 
 ### Uso Local
 1. Clona el repositorio
-2. Ejecuta `powershell -ExecutionPolicy Bypass -File server.ps1`
-3. Abre http://localhost:8000 en tu navegador
+2. **Método fácil (Windows)**: Haz doble clic en `start-server.bat`
+3. **Método manual**: Ejecuta `powershell -ExecutionPolicy Bypass -File server.ps1`
+4. Abre http://localhost:8000 en tu navegador
 
 ## 🗂️ Estructura del Proyecto
 
@@ -77,7 +78,9 @@ hemiciclo-ia/
 │   ├── 7151.xml           # ESN
 │   └── 6561.xml           # NI
 ├── server.ps1              # Servidor web local (desarrollo)
+├── start-server.bat        # Script de inicio rápido (Windows)
 ├── download-data.ps1       # Script para actualizar datos
+├── hemiciclo-parlamento-europeo.jsx # Referencia de componente React (Fuente)
 └── README.md               # Este archivo
 ```
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
       padding: 0;
       box-sizing: border-box;
     }
+
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
         'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -17,6 +19,7 @@
       -moz-osx-font-smoothing: grayscale;
       background-color: #F9FAFB;
     }
+
     #root {
       min-height: 100vh;
     }
@@ -25,6 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
   <div id="root"></div>
 
@@ -43,148 +47,157 @@
     // Inline Lucide icon components
     const Users = ({ size = 24, color = 'currentColor' }) => (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
       </svg>
     );
 
     const Globe2 = ({ size = 24, color = 'currentColor' }) => (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-        <path d="M2 12h20"/>
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+        <path d="M2 12h20" />
       </svg>
     );
 
     const RefreshCw = ({ size = 24, color = 'currentColor' }) => (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-        <path d="M21 3v5h-5"/>
-        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-        <path d="M8 16H3v5"/>
+        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+        <path d="M21 3v5h-5" />
+        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+        <path d="M8 16H3v5" />
       </svg>
     );
 
     const Loader2 = ({ size = 24, color = 'currentColor' }) => (
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{animation: 'spin 1s linear infinite'}}>
-        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
       </svg>
     );
 
     const AlertCircle = ({ size = 24, color = 'currentColor' }) => (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
       </svg>
     );
 
     const CheckCircle2 = ({ size = 24, color = 'currentColor' }) => (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="m9 12 2 2 4-4"/>
+        <circle cx="12" cy="12" r="10" />
+        <path d="m9 12 2 2 4-4" />
       </svg>
     );
 
     const Flag = ({ size = 24, color = 'currentColor' }) => (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-        <line x1="4" y1="22" x2="4" y2="15"/>
+        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+        <line x1="4" y1="22" x2="4" y2="15" />
       </svg>
     );
 
     const ChevronDown = ({ size = 24, color = 'currentColor' }) => (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="6 9 12 15 18 9"/>
+        <polyline points="6 9 12 15 18 9" />
       </svg>
     );
 
     const ChevronRight = ({ size = 24, color = 'currentColor' }) => (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="9 18 15 12 9 6"/>
+        <polyline points="9 18 15 12 9 6" />
       </svg>
     );
 
     const User = ({ size = 24, color = 'currentColor' }) => (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
       </svg>
     );
 
     const Download = ({ size = 24, color = 'currentColor' }) => (
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="7 10 12 15 17 10"/>
-        <line x1="12" y1="15" x2="12" y2="3"/>
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
       </svg>
     );
 
     const POLITICAL_GROUPS = [
       {
-        ref: '7018',
-        slug: 'epp',
-        shortName: 'EPP',
-        longName: "Group of the European People's Party (Christian Democrats)",
-        color: '#0054A6'
+        ref: '7036',
+        slug: 'left',
+        shortName: 'The Left',
+        longName: 'The Left group in the European Parliament - GUE/NGL',
+        color: '#A0002D',
+        order: 1
       },
       {
         ref: '7038',
         slug: 'sd',
         shortName: 'S&D',
         longName: 'Group of the Progressive Alliance of Socialists and Democrats',
-        color: '#C1002A'
-      },
-      {
-        ref: '7035',
-        slug: 'renew',
-        shortName: 'Renew',
-        longName: 'Renew Europe Group',
-        color: '#F6C700'
-      },
-      {
-        ref: '7037',
-        slug: 'ecr',
-        shortName: 'ECR',
-        longName: 'European Conservatives and Reformists',
-        color: '#004A9F'
+        color: '#C1002A',
+        order: 2
       },
       {
         ref: '7028',
         slug: 'greens',
         shortName: 'Greens/EFA',
         longName: 'Group of the Greens/European Free Alliance',
-        color: '#1A9C3A'
+        color: '#1A9C3A',
+        order: 3
       },
       {
-        ref: '7036',
-        slug: 'left',
-        shortName: 'The Left',
-        longName: 'The Left group in the European Parliament - GUE/NGL',
-        color: '#A0002D'
+        ref: '7035',
+        slug: 'renew',
+        shortName: 'Renew',
+        longName: 'Renew Europe Group',
+        color: '#F6C700',
+        order: 4
+      },
+      {
+        ref: '7018',
+        slug: 'epp',
+        shortName: 'EPP',
+        longName: "Group of the European People's Party (Christian Democrats)",
+        color: '#0054A6',
+        order: 5
+      },
+      {
+        ref: '7037',
+        slug: 'ecr',
+        shortName: 'ECR',
+        longName: 'European Conservatives and Reformists',
+        color: '#004A9F',
+        order: 6
       },
       {
         ref: '7150',
         slug: 'pfe',
         shortName: 'Patriots',
         longName: 'Patriots for Europe Group',
-        color: '#1F2A73'
+        color: '#1F2A73',
+        order: 7
       },
       {
         ref: '7151',
         slug: 'esn',
         shortName: 'ESN',
         longName: 'Europe of Sovereign Nations Group',
-        color: '#6B2C91'
+        color: '#6B2C91',
+        order: 8
       },
       {
         ref: '6561',
         slug: 'ni',
         shortName: 'NI',
         longName: 'Non-attached Members',
-        color: '#7A7A7A'
+        color: '#7A7A7A',
+        order: 9
       }
     ];
 
@@ -558,7 +571,11 @@
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState(null);
       const [meps, setMeps] = useState([]);
-      const [groupVotes, setGroupVotes] = useState({});
+      const [groupVotes, setGroupVotes] = useState(() => {
+        const initial = {};
+        POLITICAL_GROUPS.forEach(g => initial[g.ref] = 'undecided');
+        return initial;
+      });
       const [countryVotes, setCountryVotes] = useState({});
       const [groupCountryVotes, setGroupCountryVotes] = useState({}); // For country votes within a group (mode: group->country)
       const [countryGroupVotes, setCountryGroupVotes] = useState({}); // For group votes within a country (mode: country->group)
@@ -595,9 +612,21 @@
             });
 
             if (!cancelled) {
-              const sorted = Array.from(unique.values()).sort((a, b) =>
-                a.fullName.localeCompare(b.fullName, 'es', { sensitivity: 'base' })
-              );
+              const sorted = Array.from(unique.values()).sort((a, b) => {
+                // Primary sort: Ideological group order (Left to Right)
+                const groupA = POLITICAL_GROUPS.find(g => g.ref === a.groupRef);
+                const groupB = POLITICAL_GROUPS.find(g => g.ref === b.groupRef);
+                const orderA = groupA ? groupA.order : 99;
+                const orderB = groupB ? groupB.order : 99;
+                if (orderA !== orderB) return orderA - orderB;
+
+                // Secondary sort: Country name
+                const countryCompare = a.countryName.localeCompare(b.countryName, 'es');
+                if (countryCompare !== 0) return countryCompare;
+
+                // Tertiary sort: MEP Name
+                return a.fullName.localeCompare(b.fullName, 'es', { sensitivity: 'base' });
+              });
               setMeps(sorted);
               setLastUpdated(new Date());
             }
@@ -621,26 +650,10 @@
 
       useEffect(() => {
         if (!loading && meps.length) {
-          setGroupVotes(prev => {
-            const next = { ...prev };
-            POLITICAL_GROUPS.forEach(group => {
-              if (next[group.ref] === undefined) {
-                next[group.ref] = 'undecided';
-              }
-            });
-            return next;
-          });
 
-          const seenCountries = new Set(meps.map(mep => mep.countryName));
-          setCountryVotes(prev => {
-            const next = { ...prev };
-            seenCountries.forEach(country => {
-              if (next[country] === undefined) {
-                next[country] = 'undecided';
-              }
-            });
-            return next;
-          });
+          // groupVotes initialized in useState
+          // countryVotes should remain empty to allow group vote inheritance
+
         }
       }, [loading, meps]);
 
@@ -890,7 +903,7 @@
         XLSX.utils.book_append_sheet(wb, ws5, 'Configuración');
 
         // Exportar archivo
-        const fileName = `Simulacion_PE_${new Date().toISOString().slice(0,10)}.xlsx`;
+        const fileName = `Simulacion_PE_${new Date().toISOString().slice(0, 10)}.xlsx`;
         XLSX.writeFile(wb, fileName);
       };
 
@@ -1436,4 +1449,5 @@
     root.render(<HemicicloParlamientoEuropeo />);
   </script>
 </body>
+
 </html>
